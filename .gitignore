@@ -9,6 +9,9 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Scraper output
+data/
+
 # OS files
 .DS_Store
 Thumbs.db

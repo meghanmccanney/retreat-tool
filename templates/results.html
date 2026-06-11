@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Results — Retreat Finder{% endblock %}
+{% block content %}
+  <a class="back" href="{{ url_for('index') }}">← New search</a>
+  <h1>Results</h1>
+  <p class="sub">
+    {{ prefs.guest_count }} guests · {{ location }} · {{ check_in }} → {{ check_out }}
+    {% if prefs.max_total_price %}· max ${{ '{:,}'.format(prefs.max_total_price) }}{% endif %}
+  </p>
+  {% if prefs.must_have_amenities %}
+    <p class="sub">Must-haves: {{ prefs.must_have_amenities | join(', ') }}</p>
+  {% endif %}
+
+  <div class="pricing-note">
+    <strong>Note on pricing:</strong> the “from” price is a starting price, not an exact dated
+    total. Click “View on Airbnb” on a listing for the final quote for your dates.
+  </div>
+
+  {% if ranked %}
+    {% for r in ranked %}
+      <div class="card">
+        {% if r.photos %}
+          <div class="photos">
+            {% for url in r.photos %}<img src="{{ url }}" alt="" loading="lazy">{% endfor %}
+          </div>
+        {% endif %}
+        <div class="card-body">
+          <div class="card-head">
+            <span class="rank">#{{ loop.index }}</span>
+            <span class="score">{{ r.score }}</span>
+            <h2>{{ r.name }}</h2>
+          </div>
+          <div class="facts">
+            <span>{{ r.capacity }} guests</span>
+            <span>{{ r.bedrooms if r.bedrooms is not none else '?' }} BR</span>
+            <span>from {% if r.from_price %}${{ '{:,}'.format(r.from_price) }}{% else %}n/a{% endif %}</span>
+            <span class="avail-{{ r.availability_confirmed }}">
+              {% if r.availability_confirmed == true %}✓ available for your dates
+              {% elif r.availability_confirmed == false %}✗ not available
+              {% else %}availability unknown{% endif %}
+            </span>
+            {% if r.rating %}<span>{{ r.rating }}★ ({{ r.reviews_count }})</span>{% endif %}
+            {% if r.location_text %}<span>{{ r.location_text }}</span>{% endif %}
+          </div>
+          {% if r.missing_must_haves %}
+            <p class="missing">Missing must-haves: {{ r.missing_must_haves | join(', ') }}</p>
+          {% endif %}
+          {% if r.summary.pros or r.summary.cons %}
+            <div class="proscons">
+              <ul class="pros">{% for p in r.summary.pros %}<li>{{ p }}</li>{% endfor %}</ul>
+              <ul class="cons">{% for c in r.summary.cons %}<li>{{ c }}</li>{% endfor %}</ul>
+            </div>
+          {% endif %}
+          <a class="btn" href="{{ r.listing_url }}" target="_blank" rel="noopener">View on Airbnb →</a>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="errors"><p>No bookable listings matched. Try different dates or loosen your preferences.</p></div>
+  {% endif %}
+
+  {% if excluded %}
+    <details class="excluded">
+      <summary>{{ excluded | length }} excluded (too small for your group)</summary>
+      <ul>{% for r in excluded %}<li>{{ r.name }} — {{ r.excluded_reason }}</li>{% endfor %}</ul>
+    </details>
+  {% endif %}
+{% endblock %}
